@@ -34,11 +34,13 @@ impl ResourcesPlugin {
         let Some(window) = window.iter().next() else {
             return;
         };
-        let window_width = window.resolution.width() as usize;
-        let window_height = window.resolution.height() as usize;
+        let world_width = (window.resolution.width() / CELL_SCALE) as usize;
+        let world_height = (window.resolution.height() / CELL_SCALE) as usize;
 
         commands.insert_resource(World {
-            cells: Vec::with_capacity(window_width * window_height),
+            cells: Vec::with_capacity(world_width * world_height),
+            width: world_width,
+            height: world_height,
         });
 
         // CellResources
@@ -57,6 +59,48 @@ impl ResourcesPlugin {
 #[derive(Resource)]
 pub struct World {
     pub cells: Vec<bool>,
+    pub width: usize,
+    pub height: usize,
+}
+
+impl World {
+    pub fn calculate_cell_id(&self, x: usize, y: usize) -> usize {
+        y * self.width + x
+    }
+
+    pub fn is_alive(&self, id: usize) -> bool {
+        self.cells[id]
+    }
+
+    pub fn count_alive_around(&self, x: usize, y: usize) -> usize {
+        let mut count = 0;
+        let x = x as isize;
+        let y = y as isize;
+        let width = self.width as isize;
+
+        for cell_id in [
+            (y - 1) * width + (x - 1),
+            (y - 1) * width + x,
+            (y - 1) * width + (x + 1),
+            y * width + (x - 1),
+            y * width + (x + 1),
+            (y + 1) * width + (x - 1),
+            (y + 1) * width + x,
+            (y + 1) * width + (x + 1),
+        ] {
+            if cell_id < 0 {
+                continue;
+            }
+
+            if let Some(cell) = self.cells.get(cell_id as usize) {
+                if *cell {
+                    count += 1
+                }
+            }
+        }
+
+        count
+    }
 }
 
 #[derive(Resource)]

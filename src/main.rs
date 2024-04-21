@@ -1,5 +1,5 @@
 use bevy::app::{App, PluginGroup};
-use bevy::window::{PresentMode, Window, WindowPlugin, WindowResizeConstraints};
+use bevy::window::{EnabledButtons, PresentMode, Window, WindowPlugin};
 use bevy::DefaultPlugins;
 
 use crate::camera::CameraPlugin;
@@ -18,9 +18,9 @@ fn main() {
         primary_window: Some(Window {
             resolution: (1280., 720.).into(),
             title: "The Game of Life".into(),
-            resize_constraints: WindowResizeConstraints {
-                min_width: 640.,
-                min_height: 360.,
+            resizable: false,
+            enabled_buttons: EnabledButtons {
+                maximize: false,
                 ..Default::default()
             },
             present_mode: PresentMode::Fifo,
