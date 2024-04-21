@@ -1,0 +1,15 @@
+[package]
+name = "game-of-life"
+version = "0.0.1"
+authors = ["Ivan <contact@mixero.dev>"]
+edition = "2021"
+description = "Conway's Game of Life"
+readme = "README.md"
+homepage = "https://github.com/Mixerou/game-of-life"
+repository = "https://github.com/Mixerou/game-of-life"
+license = "MIT"
+
+[dependencies.bevy]
+version = "0.13.2"
+default-features = false
+features = ["bevy_core_pipeline", "bevy_render", "bevy_sprite", "bevy_winit", "multi-threaded"]
