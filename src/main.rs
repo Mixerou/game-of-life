@@ -3,10 +3,14 @@ use bevy::window::{PresentMode, Window, WindowPlugin, WindowResizeConstraints};
 use bevy::DefaultPlugins;
 
 use crate::camera::CameraPlugin;
+use crate::resources::ResourcesPlugin;
+use crate::states::StatesPlugin;
 use crate::world::WorldPlugin;
 
 mod camera;
 mod constants;
+mod resources;
+mod states;
 mod world;
 
 fn main() {
@@ -26,8 +30,10 @@ fn main() {
     };
 
     App::new()
-        .add_plugins(DefaultPlugins.set(window_plugin))
         .add_plugins(CameraPlugin)
+        .add_plugins(DefaultPlugins.set(window_plugin))
+        .add_plugins(ResourcesPlugin)
+        .add_plugins(StatesPlugin)
         .add_plugins(WorldPlugin)
         .run();
 }

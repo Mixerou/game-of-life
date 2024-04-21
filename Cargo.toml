@@ -9,6 +9,9 @@ homepage = "https://github.com/Mixerou/game-of-life"
 repository = "https://github.com/Mixerou/game-of-life"
 license = "MIT"
 
+[dependencies]
+oorandom = "11.1.3"
+
 [dependencies.bevy]
 version = "0.13.2"
 default-features = false
