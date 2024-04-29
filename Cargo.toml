@@ -10,7 +10,9 @@ repository = "https://github.com/Mixerou/game-of-life"
 license = "MIT"
 
 [dependencies]
+itertools = "0.12.1"
 oorandom = "11.1.3"
+rayon = "1.10.0"
 
 [dependencies.bevy]
 version = "0.13.2"

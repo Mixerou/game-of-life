@@ -8,7 +8,9 @@ use bevy::prelude::{
     ResMut, State, Transform,
 };
 use bevy::sprite::{ColorMesh2dBundle, Mesh2dHandle};
+use itertools::iproduct;
 use oorandom::Rand32;
+use rayon::iter::{ParallelBridge, ParallelIterator};
 
 use crate::constants::CELL_SCALE;
 use crate::resources::{CellResources, World};
@@ -115,40 +117,56 @@ impl WorldPlugin {
             return;
         };
 
-        let mut for_despawning = Vec::new();
+        let mut for_despawn = Vec::new();
 
-        for y in 0..world.height {
-            for x in 0..world.width {
+        iproduct!(0..world.width, 0..world.height)
+            .par_bridge()
+            .map(|(x, y)| {
                 let alive_around = world.count_alive_around(x, y);
 
-                if alive_around == 2 {
-                    continue;
+                match alive_around == 2 {
+                    true => (None, None),
+                    false => {
+                        let cell_id = world.calculate_cell_id(x, y);
+                        let is_alive = world.is_alive(cell_id);
+
+                        match true {
+                            true if is_alive && alive_around != 3 => (None, Some(cell_id)),
+                            true if !is_alive && alive_around == 3 => {
+                                (Some((cell_id, x as f32, y as f32)), None)
+                            }
+                            _ => (None, None),
+                        }
+                    }
                 }
+            })
+            .collect_vec_list()
+            .iter()
+            .flatten()
+            .for_each(|(for_spawn, cell_id_for_despawn)| {
+                if let Some((cell_id, x, y)) = for_spawn {
+                    world.cells[*cell_id] = true;
 
-                let cell_id = world.calculate_cell_id(x, y);
-                let is_alive = world.is_alive(cell_id);
-
-                if is_alive && alive_around != 3 {
-                    world.cells[cell_id] = false;
-                    for_despawning.push(cell_id);
-                } else if !is_alive && alive_around == 3 {
-                    world.cells[cell_id] = true;
                     Self::spawn_cell(
                         &mut commands,
                         &cell_resources,
                         camera,
                         camera_transform,
-                        cell_id,
-                        x as f32,
-                        y as f32,
+                        *cell_id,
+                        *x,
+                        *y,
                     );
                 }
-            }
-        }
+
+                if let Some(cell_id) = cell_id_for_despawn {
+                    for_despawn.push(*cell_id);
+                }
+            });
 
         cells.iter().for_each(|(entity, cell)| {
-            if for_despawning.contains(&cell.id) {
+            if for_despawn.contains(&cell.id) {
                 if let Some(entity) = commands.get_entity(entity) {
+                    world.cells[cell.id] = false;
                     entity.despawn_recursive();
                 }
             }
